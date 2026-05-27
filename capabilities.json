@@ -1,0 +1,55 @@
+{
+    "dataRoles": [
+        {
+            "displayName": "Record Key",
+            "name": "recordKey",
+            "kind": "Grouping",
+            "description": "Optional: drag a field here to show different content per value (e.g. project names, regions)"
+        }
+    ],
+    "objects": {
+        "apiConfig": {
+            "displayName": "API Configuration",
+            "properties": {
+                "apiUrl": {
+                    "type": { "text": true }
+                },
+                "apiKey": {
+                    "type": { "text": true }
+                },
+                "visualId": {
+                    "type": { "text": true }
+                }
+            }
+        },
+        "viewConfig": {
+            "displayName": "View",
+            "properties": {
+                "readOnly": {
+                    "type": { "bool": true }
+                }
+            }
+        }
+    },
+    "dataViewMappings": [
+        {
+            "categorical": {
+                "categories": {
+                    "for": {
+                        "in": "recordKey"
+                    },
+                    "dataReductionAlgorithm": {
+                        "top": { "count": 1 }
+                    }
+                }
+            }
+        }
+    ],
+    "privileges": [
+        {
+            "name": "WebAccess",
+            "essential": true,
+            "parameters": ["https://*"]
+        }
+    ]
+}

@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+api/node_modules/
+
+# Build output
+.tmp/
+dist/
+api/dist/
+*.pbiviz
+
+# Secrets – NEVER commit these
+api/local.settings.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+
+# pbiviz build stats
+webpack.statistics.*.html
+
+# Logs
+*.log
+npm-debug.log*
