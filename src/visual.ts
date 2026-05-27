@@ -11,7 +11,7 @@ import IVisual = powerbi.extensibility.visual.IVisual;
 import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 
 import { VisualFormattingSettingsModel } from "./settings";
-import { ApiService, ContentRecord } from "./apiService";
+import { FabricService, ContentRecord } from "./fabricService";
 
 type VisualState = "loading" | "view" | "edit" | "empty" | "error" | "unconfigured";
 
@@ -36,7 +36,7 @@ export class Visual implements IVisual {
     private state: VisualState = "loading";
     private currentRecord: ContentRecord | null = null;
     private currentRecordKey: string = "";
-    private apiService: ApiService | null = null;
+    private fabricService: FabricService | null = null;
     private isReadOnly: boolean = false;
     private deleteConfirmActive: boolean = false;
     private deleteConfirmTimer: any = null;
@@ -136,11 +136,11 @@ export class Visual implements IVisual {
             this.statusEl.style.display = "";
             this.viewEl.style.display = "none";
         } else if (isError) {
-            this.statusEl.textContent = "⚠ Could not reach the API. Check Format › API Configuration.";
+            this.statusEl.textContent = "⚠ Could not reach Fabric. Check Format › Fabric Configuration.";
             this.statusEl.className = "rtv-status rtv-status-error";
             this.statusEl.style.display = "";
         } else if (isUnconfigured) {
-            this.statusEl.textContent = "→ Open the Format pane and set an API Base URL to get started.";
+            this.statusEl.textContent = "→ Open the Format pane and set your Workspace ID and Function Set ID to get started.";
             this.statusEl.className = "rtv-status rtv-status-info";
             this.statusEl.style.display = "";
         } else {
@@ -195,10 +195,10 @@ export class Visual implements IVisual {
     }
 
     private doDelete(): void {
-        if (!this.apiService || !this.currentRecord) return;
+        if (!this.fabricService || !this.currentRecord) return;
         const self = this;
         this.deleteBtn.disabled = true;
-        this.apiService.delete(this.currentRecord.id).then(function() {
+        this.fabricService.delete(this.currentRecord.id).then(function() {
             self.currentRecord = null;
             self.viewEl.innerHTML = "";
             self.state = "empty";
@@ -215,19 +215,19 @@ export class Visual implements IVisual {
     // ── Save ─────────────────────────────────────────────────────────────────
 
     private save(): void {
-        if (!this.apiService) return;
+        if (!this.fabricService) return;
 
         const html = this.quill.root.innerHTML;
         const isEmpty = html === "<p><br></p>" || html.trim() === "";
-        const visualId = this.formattingSettings.apiConfig.visualId.value || "";
+        const visualId = this.formattingSettings.fabricConfig.visualId.value || "";
 
         const self = this;
         this.saveBtn.disabled = true;
         this.saveBtn.textContent = "Saving…";
 
-        const op: Promise<ContentRecord> = this.currentRecord
-            ? this.apiService.update(this.currentRecord.id, html)
-            : this.apiService.create({ visualId: visualId, recordKey: this.currentRecordKey, contentHtml: html });
+        const op: Promise<ContentRecord> = this.fabricService.save(
+            visualId, this.currentRecordKey, html
+        );
 
         op.then(function(record: ContentRecord) {
             self.currentRecord = record;
@@ -250,23 +250,23 @@ export class Visual implements IVisual {
             VisualFormattingSettingsModel, options.dataViews
         );
 
-        const apiUrl  = this.formattingSettings.apiConfig.apiUrl.value  || "";
-        const apiKey  = this.formattingSettings.apiConfig.apiKey.value  || "";
+        const workspaceId   = this.formattingSettings.fabricConfig.workspaceId.value   || "";
+        const functionSetId = this.formattingSettings.fabricConfig.functionSetId.value || "";
         this.isReadOnly = this.formattingSettings.viewConfig.readOnly.value || false;
 
-        if (!apiUrl) {
+        if (!workspaceId || !functionSetId) {
             this.state = "unconfigured";
             this.applyState();
             return;
         }
 
         // Auto-generate and persist visual ID on first load
-        let visualId = this.formattingSettings.apiConfig.visualId.value || "";
+        let visualId = this.formattingSettings.fabricConfig.visualId.value || "";
         if (!visualId) {
             visualId = this.generateId();
             this.host.persistProperties({
                 merge: [{
-                    objectName: "apiConfig",
+                    objectName: "fabricConfig",
                     selector: null,
                     properties: { visualId: { value: visualId } }
                 }]
@@ -274,7 +274,11 @@ export class Visual implements IVisual {
             return; // next update() will carry the persisted ID
         }
 
-        this.apiService = new ApiService(apiUrl, apiKey);
+        this.fabricService = new FabricService(
+            workspaceId,
+            functionSetId,
+            this.host.authenticationService
+        );
 
         // Don't clobber an in-progress edit
         if (this.state === "edit") return;
@@ -287,12 +291,12 @@ export class Visual implements IVisual {
     }
 
     private loadContent(visualId: string, recordKey: string): void {
-        if (!this.apiService) return;
+        if (!this.fabricService) return;
         const self = this;
         this.state = "loading";
         this.applyState();
 
-        this.apiService.get(visualId, recordKey).then(function(record: ContentRecord | null) {
+        this.fabricService.get(visualId, recordKey).then(function(record: ContentRecord | null) {
             self.currentRecord = record;
             if (record) {
                 self.viewEl.innerHTML = record.contentHtml;

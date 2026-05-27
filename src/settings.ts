@@ -6,19 +6,19 @@ import FormattingSettingsCard = formattingSettings.Card;
 import FormattingSettingsSlice = formattingSettings.Slice;
 import FormattingSettingsModel = formattingSettings.Model;
 
-class ApiConfigCard extends FormattingSettingsCard {
-    apiUrl = new formattingSettings.TextInput({
-        name: "apiUrl",
-        displayName: "API Base URL",
+class FabricConfigCard extends FormattingSettingsCard {
+    workspaceId = new formattingSettings.TextInput({
+        name: "workspaceId",
+        displayName: "Workspace ID",
         value: "",
-        placeholder: "https://your-function.azurewebsites.net/api"
+        placeholder: "Paste your Fabric Workspace ID"
     });
 
-    apiKey = new formattingSettings.TextInput({
-        name: "apiKey",
-        displayName: "API Key",
+    functionSetId = new formattingSettings.TextInput({
+        name: "functionSetId",
+        displayName: "Function Set ID",
         value: "",
-        placeholder: "Your API key (leave blank if none)"
+        placeholder: "Paste your User Data Functions item ID"
     });
 
     visualId = new formattingSettings.TextInput({
@@ -28,9 +28,9 @@ class ApiConfigCard extends FormattingSettingsCard {
         placeholder: "Auto-generated on first load"
     });
 
-    name: string = "apiConfig";
-    displayName: string = "API Configuration";
-    slices: Array<FormattingSettingsSlice> = [this.apiUrl, this.apiKey, this.visualId];
+    name: string = "fabricConfig";
+    displayName: string = "Fabric Configuration";
+    slices: Array<FormattingSettingsSlice> = [this.workspaceId, this.functionSetId, this.visualId];
 }
 
 class ViewConfigCard extends FormattingSettingsCard {
@@ -46,7 +46,7 @@ class ViewConfigCard extends FormattingSettingsCard {
 }
 
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {
-    apiConfig = new ApiConfigCard();
+    fabricConfig = new FabricConfigCard();
     viewConfig = new ViewConfigCard();
-    cards = [this.apiConfig, this.viewConfig];
+    cards = [this.fabricConfig, this.viewConfig];
 }

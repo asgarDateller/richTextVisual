@@ -18,6 +18,7 @@
     },
     "files": [
         "./src/visual.ts",
+        "./src/fabricService.ts",
         "./src/quill.d.ts"
     ]
 }

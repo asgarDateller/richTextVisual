@@ -8,13 +8,13 @@
         }
     ],
     "objects": {
-        "apiConfig": {
-            "displayName": "API Configuration",
+        "fabricConfig": {
+            "displayName": "Fabric Configuration",
             "properties": {
-                "apiUrl": {
+                "workspaceId": {
                     "type": { "text": true }
                 },
-                "apiKey": {
+                "functionSetId": {
                     "type": { "text": true }
                 },
                 "visualId": {
@@ -50,6 +50,11 @@
             "name": "WebAccess",
             "essential": true,
             "parameters": ["https://*"]
+        },
+        {
+            "name": "AADAuthentication",
+            "essential": true,
+            "parameters": ["https://api.fabric.microsoft.com"]
         }
     ]
 }
